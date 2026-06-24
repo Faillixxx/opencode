@@ -27,15 +27,13 @@ export function name(
   return get(list, providerID, modelID)?.name ?? modelID
 }
 
-// Free NVIDIA NIM *preview* endpoints (build.nvidia.com, nimType=nim_type_preview).
-// Display-only — never used for routing or API calls. Verify IDs against the
-// actual keys in provider.models; maintain here as NVIDIA promotes/retires previews.
-const NVIDIA_FREE_PREVIEW_MODELS = new Set<string>([
-  "nemotron-3-super-120b-a12b",
-  "nemotron-3-ultra-550b-a55b",
-  "llama-3.3-nemotron-super-49b-v1.5",
-])
-
-export function isFreeNvidiaPreview(providerID: string, modelID: string) {
-  return providerID === "nvidia" && NVIDIA_FREE_PREVIEW_MODELS.has(modelID)
+// A model is a free NVIDIA NIM preview endpoint when models.dev reports zero
+// input cost for it: build.nvidia.com preview NIMs are free, while the flagship
+// Nemotron production endpoints carry a price. Data-driven so the list never goes
+// stale. Display-only — never affects the model id used for routing/API calls.
+export function isFreeNvidiaPreview(
+  providerID: string,
+  model: { cost?: { input?: number } } | undefined,
+) {
+  return providerID === "nvidia" && model?.cost?.input === 0
 }

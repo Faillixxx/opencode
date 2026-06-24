@@ -38,11 +38,17 @@ export function DialogModel(props: { providerID?: string }) {
           {
             key: item,
             value: { providerID: provider.id, modelID: model.id },
-            title: model.name ?? item.modelID,
+            title: Model.isFreeNvidiaPreview(provider.id, model)
+              ? `${model.name ?? item.modelID} (Free)`
+              : (model.name ?? item.modelID),
             description: provider.name,
             category,
             disabled: provider.id === "opencode" && model.id.includes("-nano"),
-            footer: model.cost?.input === 0 && provider.id === "opencode" ? "Free" : undefined,
+            footer:
+              (model.cost?.input === 0 && provider.id === "opencode") ||
+              Model.isFreeNvidiaPreview(provider.id, model)
+                ? "Free"
+                : undefined,
             onSelect: () => {
               onSelect(provider.id, model.id)
             },
@@ -73,7 +79,7 @@ export function DialogModel(props: { providerID?: string }) {
           filter(([_, info]) => (props.providerID ? info.providerID === props.providerID : true)),
           map(([model, info]) => ({
             value: { providerID: provider.id, modelID: model },
-            title: Model.isFreeNvidiaPreview(provider.id, model)
+            title: Model.isFreeNvidiaPreview(provider.id, info)
               ? `${info.name ?? model} (Free)`
               : (info.name ?? model),
             releaseDate: info.release_date,
@@ -84,7 +90,7 @@ export function DialogModel(props: { providerID?: string }) {
             disabled: provider.id === "opencode" && model.includes("-nano"),
             footer:
               (info.cost?.input === 0 && provider.id === "opencode") ||
-              Model.isFreeNvidiaPreview(provider.id, model)
+              Model.isFreeNvidiaPreview(provider.id, info)
                 ? "Free"
                 : undefined,
             onSelect() {
