@@ -8,6 +8,7 @@ import { DialogVariant } from "./dialog-variant"
 import * as fuzzysort from "fuzzysort"
 import { useConnected } from "./use-connected"
 import { useSync } from "../context/sync"
+import * as Model from "../util/model"
 
 export function DialogModel(props: { providerID?: string }) {
   const local = useLocal()
@@ -72,14 +73,20 @@ export function DialogModel(props: { providerID?: string }) {
           filter(([_, info]) => (props.providerID ? info.providerID === props.providerID : true)),
           map(([model, info]) => ({
             value: { providerID: provider.id, modelID: model },
-            title: info.name ?? model,
+            title: Model.isFreeNvidiaPreview(provider.id, model)
+              ? `${info.name ?? model} (Free)`
+              : (info.name ?? model),
             releaseDate: info.release_date,
             description: favorites.some((item) => item.providerID === provider.id && item.modelID === model)
               ? "(Favorite)"
               : undefined,
             category: connected() ? provider.name : undefined,
             disabled: provider.id === "opencode" && model.includes("-nano"),
-            footer: info.cost?.input === 0 && provider.id === "opencode" ? "Free" : undefined,
+            footer:
+              (info.cost?.input === 0 && provider.id === "opencode") ||
+              Model.isFreeNvidiaPreview(provider.id, model)
+                ? "Free"
+                : undefined,
             onSelect() {
               onSelect(provider.id, model)
             },
